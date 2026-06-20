@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공학용 계산기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+    }
+
+    .display-font { font-family: 'JetBrains Mono', monospace; }
+
+    .calc-btn {
+      transition: all 0.12s ease;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .calc-btn:active {
+      transform: scale(0.93);
+    }
+
+    .calc-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: white;
+      opacity: 0;
+      transition: opacity 0.15s;
+      border-radius: inherit;
+    }
+
+    .calc-btn:active::after { opacity: 0.1; }
+
+    .btn-num {
+      background: linear-gradient(145deg, #2a2a4a, #1e1e38);
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .btn-num:hover { background: linear-gradient(145deg, #32325a, #252545); border-color: rgba(255,255,255,0.15); }
+
+    .btn-op {
+      background: linear-gradient(145deg, #3730a3, #2e27a0);
+      color: #c7d2fe;
+      border: 1px solid rgba(99,102,241,0.3);
+    }
+    .btn-op:hover { background: linear-gradient(145deg, #4338ca, #3730a3); }
+
+    .btn-fn {
+      background: linear-gradient(145deg, #1e3a5f, #172d4d);
+      color: #93c5fd;
+      border: 1px solid rgba(59,130,246,0.2);
+      font-size: 0.72rem;
+    }
+    .btn-fn:hover { background: linear-gradient(145deg, #1e4a7f, #1a3a6a); }
+
+    .btn-eq {
+      background: linear-gradient(145deg, #7c3aed, #6d28d9);
+      color: white;
+      border: 1px solid rgba(139,92,246,0.4);
+    }
+    .btn-eq:hover { background: linear-gradient(145deg, #8b5cf6, #7c3aed); }
+
+    .btn-clear {
+      background: linear-gradient(145deg, #be123c, #9f1239);
+      color: #fecdd3;
+      border: 1px solid rgba(251,113,133,0.3);
+    }
+    .btn-clear:hover { background: linear-gradient(145deg, #e11d48, #be123c); }
+
+    .btn-mem {
+      background: linear-gradient(145deg, #0f4c2a, #0a3a1f);
+      color: #86efac;
+      border: 1px solid rgba(74,222,128,0.2);
+      font-size: 0.68rem;
+    }
+    .btn-mem:hover { background: linear-gradient(145deg, #166534, #14532d); }
+
+    .btn-const {
+      background: linear-gradient(145deg, #713f12, #5c3108);
+      color: #fde68a;
+      border: 1px solid rgba(251,191,36,0.2);
+      font-size: 0.72rem;
+    }
+    .btn-const:hover { background: linear-gradient(145deg, #854d0e, #713f12); }
+
+    .display-container {
+      background: linear-gradient(180deg, #05050f 0%, #0d0d20 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+    }
+
+    .history-item:hover { background: rgba(255,255,255,0.04); }
+
+    .tab-active {
+      background: rgba(99,102,241,0.2);
+      border-color: rgba(99,102,241,0.5) !important;
+      color: #a5b4fc !important;
+    }
+
+    .glow {
+      box-shadow: 0 0 30px rgba(124,58,237,0.15), 0 0 60px rgba(99,102,241,0.08);
+    }
+
+    .deg-active {
+      background: rgba(99,102,241,0.3) !important;
+      color: #a5b4fc !important;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+  </style>
+</head>
+<body class="flex items-center justify-center p-4 min-h-screen">
+
+  <div class="w-full max-w-md glow">
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <h1 class="text-white text-xl font-semibold tracking-widest opacity-80">ENGINEERING CALC</h1>
+      <div class="h-px bg-gradient-to-r from-transparent via-indigo-500 to-transparent mt-2 opacity-50"></div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="rounded-2xl overflow-hidden border border-white/10" style="background: linear-gradient(160deg, #12122a, #0d0d1f);">
+
+      <!-- Display -->
+      <div class="display-container m-3 p-4 rounded-xl">
+        <!-- Mode & Memory Indicator -->
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex gap-2">
+            <button id="btn-deg" onclick="toggleAngleMode('DEG')" class="deg-active text-xs px-2 py-0.5 rounded border border-white/10 text-gray-400 transition-all">DEG</button>
+            <button id="btn-rad" onclick="toggleAngleMode('RAD')" class="text-xs px-2 py-0.5 rounded border border-white/10 text-gray-400 transition-all">RAD</button>
+          </div>
+          <div class="flex gap-3 text-xs">
+            <span id="mem-indicator" class="text-green-400 opacity-0 transition-opacity">M</span>
+            <span id="shift-indicator" class="text-yellow-400 opacity-0 transition-opacity">2nd</span>
+          </div>
+        </div>
+
+        <!-- Expression -->
+        <div id="expression" class="display-font text-gray-500 text-sm min-h-5 text-right truncate mb-1 px-1"></div>
+
+        <!-- Main Display -->
+        <div id="display" class="display-font text-white text-right px-1 leading-none overflow-hidden" style="font-size: clamp(1.4rem, 6vw, 2rem); word-break: break-all;">0</div>
+      </div>
+
+      <!-- History Panel -->
+      <div id="history-panel" class="hidden mx-3 mb-2">
+        <div class="rounded-xl border border-white/8 overflow-hidden" style="background: rgba(0,0,0,0.3);">
+          <div class="flex justify-between items-center px-3 py-2 border-b border-white/5">
+            <span class="text-gray-400 text-xs font-medium">히스토리</span>
+            <button onclick="clearHistory()" class="text-red-400 text-xs hover:text-red-300">지우기</button>
+          </div>
+          <div id="history-list" class="max-h-32 overflow-y-auto divide-y divide-white/5"></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-1 mx-3 mb-2">
+        <button onclick="showTab('basic')" id="tab-basic" class="tab-active flex-1 text-xs py-1.5 rounded-lg border border-white/10 text-gray-400 transition-all">기본</button>
+        <button onclick="showTab('sci')" id="tab-sci" class="flex-1 text-xs py-1.5 rounded-lg border border-white/10 text-gray-400 transition-all">과학</button>
+        <button onclick="toggleHistory()" class="text-xs py-1.5 px-3 rounded-lg border border-white/10 text-gray-400 transition-all hover:border-white/20">⏱</button>
+      </div>
+
+      <!-- Button Grid -->
+      <div class="px-3 pb-3">
+
+        <!-- Basic Panel -->
+        <div id="panel-basic">
+          <!-- Row 1: Memory -->
+          <div class="grid grid-cols-5 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-mem rounded-xl py-3 text-center" onclick="memAction('MC')">MC</button>
+            <button class="calc-btn btn-mem rounded-xl py-3 text-center" onclick="memAction('MR')">MR</button>
+            <button class="calc-btn btn-mem rounded-xl py-3 text-center" onclick="memAction('M+')">M+</button>
+            <button class="calc-btn btn-mem rounded-xl py-3 text-center" onclick="memAction('M-')">M−</button>
+            <button class="calc-btn btn-mem rounded-xl py-3 text-center" onclick="memAction('MS')">MS</button>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-clear rounded-xl py-3.5 text-sm font-semibold" onclick="clearAll()">AC</button>
+            <button class="calc-btn btn-fn rounded-xl py-3.5 font-semibold" onclick="toggleSign()">+/−</button>
+            <button class="calc-btn btn-fn rounded-xl py-3.5 font-semibold" onclick="percentage()">%</button>
+            <button class="calc-btn btn-op rounded-xl py-3.5 text-xl font-light" onclick="inputOp('÷')">÷</button>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium" onclick="inputNum('7')">7</button>
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium" onclick="inputNum('8')">8</button>
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium" onclick="inputNum('9')">9</button>
+            <button class="calc-btn btn-op rounded-xl py-3.5 text-xl font-light" onclick="inputOp('×')">×</button>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium" onclick="inputNum('4')">4</button>
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium" onclick="inputNum('5')">5</button>
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium" onclick="inputNum('6')">6</button>
+            <button class="calc-btn btn-op rounded-xl py-3.5 text-xl font-light" onclick="inputOp('−')">−</button>
+          </div>
+
+          <!-- Row 5 -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium" onclick="inputNum('1')">1</button>
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium" onclick="inputNum('2')">2</button>
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium" onclick="inputNum('3')">3</button>
+            <button class="calc-btn btn-op rounded-xl py-3.5 text-xl font-light" onclick="inputOp('+')">+</button>
+          </div>
+
+          <!-- Row 6 -->
+          <div class="grid grid-cols-4 gap-1.5">
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium col-span-2" onclick="inputNum('0')">0</button>
+            <button class="calc-btn btn-num rounded-xl py-3.5 text-lg font-medium" onclick="inputDot()">.</button>
+            <button class="calc-btn btn-eq rounded-xl py-3.5 text-xl font-medium" onclick="calculate()">=</button>
+          </div>
+        </div>
+
+        <!-- Science Panel -->
+        <div id="panel-sci" class="hidden">
+          <!-- Row 1: Trig -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('sin')">sin</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('cos')">cos</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('tan')">tan</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="toggleShift()">2nd</button>
+          </div>
+          <!-- Row 2: Inverse Trig -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('asin')">sin⁻¹</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('acos')">cos⁻¹</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('atan')">tan⁻¹</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('sqrt')">√x</button>
+          </div>
+          <!-- Row 3: Log/Exp -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('log')">log</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('ln')">ln</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('exp')">eˣ</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('pow2')">x²</button>
+          </div>
+          <!-- Row 4: More -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('pow3')">x³</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('cbrt')">∛x</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('inv')">1/x</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('abs')">|x|</button>
+          </div>
+          <!-- Row 5: Constants & Power -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-const rounded-xl py-3 font-medium" onclick="insertConst('pi')">π</button>
+            <button class="calc-btn btn-const rounded-xl py-3 font-medium" onclick="insertConst('e')">e</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="inputOp('^')">xʸ</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-medium" onclick="sciFunc('fact')">n!</button>
+          </div>
+          <!-- Row 6: Parentheses + Clear + Backspace -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-fn rounded-xl py-3 text-base font-semibold" onclick="inputParen('(')"> ( </button>
+            <button class="calc-btn btn-fn rounded-xl py-3 text-base font-semibold" onclick="inputParen(')')"> ) </button>
+            <button class="calc-btn btn-clear rounded-xl py-3 text-sm font-semibold" onclick="clearAll()">AC</button>
+            <button class="calc-btn btn-fn rounded-xl py-3 font-semibold" onclick="backspace()">⌫</button>
+          </div>
+          <!-- Row 7: Number Row -->
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium" onclick="inputNum('7')">7</button>
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium" onclick="inputNum('8')">8</button>
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium" onclick="inputNum('9')">9</button>
+            <button class="calc-btn btn-op rounded-xl py-3 text-xl font-light" onclick="inputOp('÷')">÷</button>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium" onclick="inputNum('4')">4</button>
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium" onclick="inputNum('5')">5</button>
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium" onclick="inputNum('6')">6</button>
+            <button class="calc-btn btn-op rounded-xl py-3 text-xl font-light" onclick="inputOp('×')">×</button>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5 mb-1.5">
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium" onclick="inputNum('1')">1</button>
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium" onclick="inputNum('2')">2</button>
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium" onclick="inputNum('3')">3</button>
+            <button class="calc-btn btn-op rounded-xl py-3 text-xl font-light" onclick="inputOp('−')">−</button>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium col-span-2" onclick="inputNum('0')">0</button>
+            <button class="calc-btn btn-num rounded-xl py-3 text-lg font-medium" onclick="inputDot()">.</button>
+            <button class="calc-btn btn-eq rounded-xl py-3 text-xl font-medium" onclick="calculate()">=</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+  let currentVal = '0';
+  let expression = '';
+  let operator = '';
+  let prevVal = '';
+  let waitingForNext = false;
+  let angleMode = 'DEG'; // DEG or RAD
+  let memory = 0;
+  let shiftMode = false;
+  let history = [];
+  let parenDepth = 0;
+
+  // --- Display ---
+  function updateDisplay() {
+    const d = document.getElementById('display');
+    let v = currentVal;
+    if (v.length > 14) {
+      const n = parseFloat(v);
+      if (!isNaN(n)) v = n.toPrecision(10).replace(/\.?0+$/, '');
+    }
+    d.textContent = v;
+    document.getElementById('expression').textContent = expression;
+  }
+
+  // --- Number Input ---
+  function inputNum(n) {
+    if (waitingForNext) {
+      currentVal = n;
+      waitingForNext = false;
+    } else {
+      currentVal = currentVal === '0' ? n : currentVal + n;
+    }
+    updateDisplay();
+  }
+
+  function inputDot() {
+    if (waitingForNext) { currentVal = '0.'; waitingForNext = false; }
+    else if (!currentVal.includes('.')) currentVal += '.';
+    updateDisplay();
+  }
+
+  function backspace() {
+    if (currentVal.length > 1) currentVal = currentVal.slice(0, -1);
+    else currentVal = '0';
+    updateDisplay();
+  }
+
+  function clearAll() {
+    currentVal = '0'; expression = ''; operator = '';
+    prevVal = ''; waitingForNext = false; parenDepth = 0;
+    updateDisplay();
+  }
+
+  // --- Operators ---
+  function inputOp(op) {
+    if (operator && !waitingForNext) {
+      const res = compute(parseFloat(prevVal), parseFloat(currentVal), operator);
+      currentVal = formatNum(res);
+    }
+    prevVal = currentVal;
+    operator = op;
+    expression = currentVal + ' ' + op;
+    waitingForNext = true;
+    updateDisplay();
+  }
+
+  function inputParen(p) {
+    if (waitingForNext && p === '(') {
+      currentVal = '0';
+      waitingForNext = false;
+    }
+    if (p === '(') {
+      parenDepth++;
+      expression += p;
+    } else if (p === ')' && parenDepth > 0) {
+      parenDepth--;
+      expression += currentVal + p;
+      waitingForNext = true;
+    }
+    updateDisplay();
+  }
+
+  function compute(a, b, op) {
+    switch(op) {
+      case '+': return a + b;
+      case '−': return a - b;
+      case '×': return a * b;
+      case '÷': return b === 0 ? NaN : a / b;
+      case '^': return Math.pow(a, b);
+    }
+    return b;
+  }
+
+  function calculate() {
+    if (!operator || waitingForNext) return;
+    const a = parseFloat(prevVal);
+    const b = parseFloat(currentVal);
+    const fullExpr = expression + ' ' + currentVal;
+    const res = compute(a, b, operator);
+    if (isNaN(res)) { currentVal = 'Error'; }
+    else { currentVal = formatNum(res); }
+    addHistory(fullExpr + ' = ' + currentVal);
+    expression = '';
+    operator = '';
+    prevVal = '';
+    waitingForNext = true;
+    updateDisplay();
+  }
+
+  // --- Scientific ---
+  function toRad(deg) { return deg * Math.PI / 180; }
+  function toDeg(rad) { return rad * 180 / Math.PI; }
+
+  function sciFunc(fn) {
+    const x = parseFloat(currentVal);
+    let res;
+    switch(fn) {
+      case 'sin':  res = Math.sin(angleMode === 'DEG' ? toRad(x) : x); break;
+      case 'cos':  res = Math.cos(angleMode === 'DEG' ? toRad(x) : x); break;
+      case 'tan':  res = Math.tan(angleMode === 'DEG' ? toRad(x) : x); break;
+      case 'asin': res = angleMode === 'DEG' ? toDeg(Math.asin(x)) : Math.asin(x); break;
+      case 'acos': res = angleMode === 'DEG' ? toDeg(Math.acos(x)) : Math.acos(x); break;
+      case 'atan': res = angleMode === 'DEG' ? toDeg(Math.atan(x)) : Math.atan(x); break;
+      case 'sqrt': res = Math.sqrt(x); break;
+      case 'cbrt': res = Math.cbrt(x); break;
+      case 'log':  res = Math.log10(x); break;
+      case 'ln':   res = Math.log(x); break;
+      case 'exp':  res = Math.exp(x); break;
+      case 'pow2': res = Math.pow(x, 2); break;
+      case 'pow3': res = Math.pow(x, 3); break;
+      case 'inv':  res = 1 / x; break;
+      case 'abs':  res = Math.abs(x); break;
+      case 'fact': res = factorial(Math.round(x)); break;
+    }
+    const exprStr = fn + '(' + currentVal + ')';
+    if (isNaN(res) || !isFinite(res)) { currentVal = 'Error'; }
+    else { currentVal = formatNum(res); }
+    addHistory(exprStr + ' = ' + currentVal);
+    waitingForNext = true;
+    updateDisplay();
+  }
+
+  function factorial(n) {
+    if (n < 0) return NaN;
+    if (n === 0 || n === 1) return 1;
+    if (n > 170) return Infinity;
+    let r = 1;
+    for (let i = 2; i <= n; i++) r *= i;
+    return r;
+  }
+
+  // --- Constants ---
+  function insertConst(c) {
+    if (c === 'pi') currentVal = String(Math.PI);
+    else if (c === 'e') currentVal = String(Math.E);
+    waitingForNext = false;
+    updateDisplay();
+  }
+
+  // --- Utility ---
+  function toggleSign() {
+    if (currentVal !== '0') {
+      currentVal = currentVal.startsWith('-') ? currentVal.slice(1) : '-' + currentVal;
+      updateDisplay();
+    }
+  }
+
+  function percentage() {
+    currentVal = formatNum(parseFloat(currentVal) / 100);
+    updateDisplay();
+  }
+
+  function formatNum(n) {
+    if (!isFinite(n)) return 'Error';
+    const s = parseFloat(n.toPrecision(12));
+    return String(s);
+  }
+
+  // --- Angle Mode ---
+  function toggleAngleMode(mode) {
+    angleMode = mode;
+    document.getElementById('btn-deg').classList.toggle('deg-active', mode === 'DEG');
+    document.getElementById('btn-rad').classList.toggle('deg-active', mode === 'RAD');
+  }
+
+  // --- Shift ---
+  function toggleShift() {
+    shiftMode = !shiftMode;
+    document.getElementById('shift-indicator').style.opacity = shiftMode ? '1' : '0';
+  }
+
+  // --- Memory ---
+  function memAction(action) {
+    const x = parseFloat(currentVal);
+    switch(action) {
+      case 'MC': memory = 0; break;
+      case 'MR': currentVal = formatNum(memory); waitingForNext = false; updateDisplay(); return;
+      case 'M+': memory += x; break;
+      case 'M-': memory -= x; break;
+      case 'MS': memory = x; break;
+    }
+    document.getElementById('mem-indicator').style.opacity = memory !== 0 ? '1' : '0';
+  }
+
+  // --- History ---
+  function addHistory(entry) {
+    history.unshift(entry);
+    if (history.length > 20) history.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    list.innerHTML = history.map(h =>
+      `<div class="history-item px-3 py-2 text-right cursor-pointer" onclick="recallHistory('${h.split(' = ')[1]}')">
+        <div class="text-gray-500 text-xs truncate">${h.split(' = ')[0]}</div>
+        <div class="display-font text-white text-sm">${h.split(' = ')[1]}</div>
+      </div>`
+    ).join('');
+  }
+
+  function recallHistory(val) {
+    currentVal = val;
+    waitingForNext = false;
+    updateDisplay();
+  }
+
+  function clearHistory() {
+    history = [];
+    renderHistory();
+  }
+
+  function toggleHistory() {
+    const p = document.getElementById('history-panel');
+    p.classList.toggle('hidden');
+  }
+
+  // --- Tabs ---
+  function showTab(tab) {
+    document.getElementById('panel-basic').classList.toggle('hidden', tab !== 'basic');
+    document.getElementById('panel-sci').classList.toggle('hidden', tab !== 'sci');
+    document.getElementById('tab-basic').classList.toggle('tab-active', tab === 'basic');
+    document.getElementById('tab-sci').classList.toggle('tab-active', tab === 'sci');
+  }
+
+  // --- Keyboard Support ---
+  document.addEventListener('keydown', e => {
+    if (e.key >= '0' && e.key <= '9') inputNum(e.key);
+    else if (e.key === '.') inputDot();
+    else if (e.key === '+') inputOp('+');
+    else if (e.key === '-') inputOp('−');
+    else if (e.key === '*') inputOp('×');
+    else if (e.key === '/') { e.preventDefault(); inputOp('÷'); }
+    else if (e.key === '^') inputOp('^');
+    else if (e.key === 'Enter' || e.key === '=') calculate();
+    else if (e.key === 'Backspace') backspace();
+    else if (e.key === 'Escape') clearAll();
+    else if (e.key === '(') inputParen('(');
+    else if (e.key === ')') inputParen(')');
+    else if (e.key === '%') percentage();
+  });
+
+  updateDisplay();
+</script>
+</body>
+</html>
