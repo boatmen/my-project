@@ -3,126 +3,915 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>My Workspace</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    * { box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); min-height: 100vh; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
 
-    .card {
-      background: linear-gradient(160deg, #12122a, #0d0d1f);
-      border: 1px solid rgba(255,255,255,0.08);
-      transition: all 0.25s ease;
+    :root {
+      --bg:        #000000;
+      --bg-1:      #1c1c1e;
+      --bg-2:      #2c2c2e;
+      --bg-3:      #3a3a3c;
+      --label:     #ffffff;
+      --label-2:   rgba(235,235,245,0.6);
+      --label-3:   rgba(235,235,245,0.3);
+      --label-4:   rgba(235,235,245,0.16);
+      --sep:       rgba(84,84,88,0.65);
+      --blue:      #0a84ff;
+      --green:     #30d158;
+      --red:       #ff453a;
+      --orange:    #ff9f0a;
+      --teal:      #5ac8fa;
+      --purple:    #bf5af2;
+      --sidebar-w: 228px;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--label);
+      display: flex;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      height: 100vh;
+      background: rgba(28,28,30,0.96);
+      border-right: 0.5px solid var(--sep);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 10px 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px 20px;
+      border-bottom: 0.5px solid var(--sep);
+      margin-bottom: 14px;
+    }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, #0a84ff 0%, #5e5ce6 100%);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+    .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.3px; }
+    .brand-sub  { font-size: 11px; color: var(--label-3); margin-top: 1px; }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--label-3);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 0 10px 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 9px;
+      cursor: pointer;
+      color: var(--label-2);
+      font-size: 13.5px;
+      font-weight: 500;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      transition: background 0.15s ease, color 0.15s ease;
+      letter-spacing: -0.1px;
+    }
+    .nav-item:hover  { background: rgba(255,255,255,0.07); color: var(--label); }
+    .nav-item.active { background: rgba(10,132,255,0.16); color: var(--blue); }
+
+    .nav-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .ni-calc { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+    .ni-todo  { background: linear-gradient(135deg, #059669, #047857); }
+    .nav-item.active .ni-calc { background: linear-gradient(135deg, #0a84ff, #0060df); }
+    .nav-item.active .ni-todo  { background: linear-gradient(135deg, #30d158, #25a244); }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--blue);
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 5px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .nav-badge.show { opacity: 1; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 10px;
+      font-size: 11px;
+      color: var(--label-4);
+      text-align: center;
+    }
+
+    /* ─── MAIN ─── */
+    .main {
+      flex: 1;
+      height: 100vh;
+      background: var(--bg-1);
       position: relative;
       overflow: hidden;
     }
-    .card::before {
-      content: '';
+
+    .panel {
       position: absolute;
       inset: 0;
+      overflow-y: auto;
       opacity: 0;
-      transition: opacity 0.25s;
+      transform: translateX(14px);
+      transition: opacity 0.22s ease, transform 0.22s ease;
       pointer-events: none;
     }
-    .card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.18); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-    .card:hover::before { opacity: 1; }
-    .card-calc::before { background: linear-gradient(135deg, rgba(124,58,237,0.08), transparent); }
-    .card-todo::before { background: linear-gradient(135deg, rgba(16,185,129,0.08), transparent); }
-
-    .icon-wrap { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
-    .icon-calc { background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(99,102,241,0.15)); border: 1px solid rgba(124,58,237,0.3); }
-    .icon-todo { background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.15)); border: 1px solid rgba(16,185,129,0.3); }
-
-    .tag { font-size: 0.65rem; padding: 2px 8px; border-radius: 99px; font-weight: 500; letter-spacing: 0.05em; }
-
-    .btn-go {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 10px 20px; border-radius: 10px; font-size: 0.875rem; font-weight: 500;
-      transition: all 0.18s ease; text-decoration: none;
+    .panel.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: all;
     }
-    .btn-calc { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; border: 1px solid rgba(139,92,246,0.4); }
-    .btn-calc:hover { background: linear-gradient(135deg, #8b5cf6, #7c3aed); box-shadow: 0 0 20px rgba(124,58,237,0.4); }
-    .btn-todo { background: linear-gradient(135deg, #059669, #047857); color: white; border: 1px solid rgba(16,185,129,0.4); }
-    .btn-todo:hover { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 20px rgba(16,185,129,0.4); }
 
-    .glow-line { height: 1px; background: linear-gradient(90deg, transparent, rgba(99,102,241,0.5), transparent); }
+    /* ─── CALCULATOR PANEL ─── */
+    .calc-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100%;
+      padding: 32px 24px;
+    }
+
+    .calc-app {
+      width: 300px;
+      background: #000;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow:
+        0 40px 100px rgba(0,0,0,0.7),
+        0 0 0 0.5px rgba(255,255,255,0.12);
+    }
+
+    .calc-display {
+      padding: 24px 20px 10px;
+      text-align: right;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .calc-expr {
+      font-size: 13px;
+      color: var(--label-3);
+      min-height: 18px;
+      margin-bottom: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+    .calc-value {
+      font-size: 52px;
+      font-weight: 200;
+      color: #fff;
+      line-height: 1;
+      word-break: break-all;
+      letter-spacing: -1px;
+    }
+
+    .calc-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 20px 10px;
+    }
+    .angle-toggles { display: flex; gap: 4px; }
+    .angle-btn {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 6px;
+      background: var(--bg-2);
+      color: var(--label-3);
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .angle-btn.active { background: var(--blue); color: #fff; }
+    .mem-ind { font-size: 11px; font-weight: 600; color: var(--green); opacity: 0; transition: opacity 0.2s; }
+    .mem-ind.show { opacity: 1; }
+
+    .calc-tabs {
+      display: flex;
+      border-top: 0.5px solid rgba(255,255,255,0.08);
+      border-bottom: 0.5px solid rgba(255,255,255,0.08);
+    }
+    .calc-tab {
+      flex: 1;
+      padding: 8px 0;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--label-3);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 0.15s;
+    }
+    .calc-tab.active { color: var(--orange); }
+
+    /* Buttons */
+    .btn-grid {
+      display: grid;
+      gap: 1.5px;
+      background: rgba(255,255,255,0.04);
+      padding: 1.5px;
+    }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid-5 { grid-template-columns: repeat(5, 1fr); }
+
+    .cb {
+      height: 68px;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter 0.08s ease;
+      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+      color: #fff;
+      user-select: none;
+    }
+    .cb:active { filter: brightness(0.75); }
+
+    .cb-gray   { background: #636366; }
+    .cb-dark   { background: #1c1c1e; font-size: 12px; color: var(--label-2); }
+    .cb-num    { background: #2c2c2e; }
+    .cb-op     { background: var(--orange); }
+    .cb-fn     { background: #1c1c1e; color: var(--teal); font-size: 13px; }
+    .cb-const  { background: #1c1c1e; color: var(--orange); font-size: 14px; }
+    .cb-wide   { grid-column: span 2; justify-content: flex-start; padding-left: 28px; }
+
+    .sci-row { margin-bottom: 1.5px; }
+
+    /* ─── TODO PANEL ─── */
+    .todo-panel {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 36px 28px 48px;
+    }
+
+    .todo-hdr { margin-bottom: 24px; }
+    .todo-hdr h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .todo-hdr p  { font-size: 13px; color: var(--label-3); }
+
+    /* Stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .stat-card {
+      background: var(--bg-2);
+      border-radius: 14px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .stat-num   { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; }
+    .stat-label { font-size: 11px; color: var(--label-3); margin-top: 2px; }
+
+    .progress-wrap {
+      background: var(--bg-2);
+      border-radius: 6px;
+      height: 5px;
+      margin-bottom: 22px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), #25a244);
+      border-radius: 6px;
+      transition: width 0.4s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* Form */
+    .todo-form {
+      background: var(--bg-2);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .form-row-1 { display: flex; gap: 8px; margin-bottom: 9px; }
+    .form-row-2 { display: flex; gap: 8px; }
+
+    .t-input {
+      flex: 1;
+      background: var(--bg-3);
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--label);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: box-shadow 0.15s;
+    }
+    .t-input::placeholder { color: var(--label-3); }
+    .t-input:focus { box-shadow: 0 0 0 2px var(--blue); }
+
+    .t-add {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: filter 0.15s;
+    }
+    .t-add:hover  { filter: brightness(1.1); }
+    .t-add:active { filter: brightness(0.9); }
+
+    .t-select {
+      flex: 1;
+      background: var(--bg-3);
+      border: none;
+      border-radius: 10px;
+      padding: 9px 12px;
+      color: var(--label-2);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    .t-select option { background: var(--bg-2); }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .f-pill {
+      padding: 5px 13px;
+      border-radius: 20px;
+      background: var(--bg-2);
+      color: var(--label-2);
+      font-size: 12px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .f-pill:hover  { background: var(--bg-3); }
+    .f-pill.active { background: var(--blue); color: #fff; }
+    .f-pill-red { color: var(--red) !important; }
+    .f-pill-red:hover { background: rgba(255,69,58,0.15) !important; }
+
+    /* Todo list */
+    .todo-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .t-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 14px;
+      background: var(--bg-2);
+      border-radius: 14px;
+      transition: background 0.15s;
+      animation: itemSlide 0.2s ease;
+    }
+    @keyframes itemSlide {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .t-item:hover { background: var(--bg-3); }
+    .t-item.done  { opacity: 0.5; }
+    .t-item.done .t-text { text-decoration: line-through; color: var(--label-3); }
+
+    .t-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--sep);
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+      transition: all 0.15s;
+    }
+    .t-check.checked {
+      background: var(--green);
+      border-color: var(--green);
+    }
+    .t-check.checked::after {
+      content: '✓';
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .t-body   { flex: 1; min-width: 0; }
+    .t-text   { font-size: 14px; color: var(--label); line-height: 1.45; margin-bottom: 5px; }
+    .t-meta   { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+
+    .badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 5px; }
+    .b-high { background: rgba(255,69,58,0.18);  color: #ff6b61; }
+    .b-mid  { background: rgba(255,159,10,0.18); color: var(--orange); }
+    .b-low  { background: rgba(10,132,255,0.18); color: var(--blue); }
+    .b-cat  { background: rgba(255,255,255,0.06); color: var(--label-3); font-weight: 500; }
+    .b-date { font-size: 10px; color: var(--label-4); }
+
+    .t-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--red);
+      opacity: 0;
+      padding: 5px;
+      border-radius: 7px;
+      transition: opacity 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .t-item:hover .t-del { opacity: 1; }
+    .t-del:hover { background: rgba(255,69,58,0.15); }
+
+    .empty {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--label-3);
+    }
+    .empty-icon { font-size: 52px; margin-bottom: 14px; }
+    .empty-text { font-size: 15px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(84,84,88,0.5); border-radius: 3px; }
   </style>
 </head>
-<body class="flex flex-col items-center justify-center p-6 min-h-screen">
+<body>
 
-  <div class="w-full max-w-2xl">
-
-    <!-- Header -->
-    <div class="text-center mb-10">
-      <div class="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mb-4">
-        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-        <span class="text-gray-400 text-xs tracking-widest font-medium">DASHBOARD</span>
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <div class="brand-name">My Workspace</div>
+        <div class="brand-sub">boatmen</div>
       </div>
-      <h1 class="text-white text-4xl font-bold tracking-tight mb-2">My Workspace</h1>
-      <p class="text-gray-500 text-sm">필요한 도구를 바로 선택하세요</p>
-      <div class="glow-line mt-6"></div>
     </div>
 
-    <!-- Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+    <div class="section-title">도구</div>
 
-      <!-- Calculator Card -->
-      <div class="card card-calc rounded-2xl p-6">
-        <div class="flex items-start justify-between mb-4">
-          <div class="icon-wrap icon-calc">🧮</div>
-          <span class="tag bg-violet-500/15 text-violet-300 border border-violet-500/20">과학</span>
+    <button class="nav-item active" id="nav-calc" onclick="switchPanel('calc')">
+      <span class="nav-icon ni-calc">🧮</span>
+      공학용 계산기
+    </button>
+
+    <button class="nav-item" id="nav-todo" onclick="switchPanel('todo')">
+      <span class="nav-icon ni-todo">✅</span>
+      할 일 관리
+      <span class="nav-badge" id="todo-badge"></span>
+    </button>
+
+    <div class="sidebar-footer">My Workspace v2.0</div>
+  </aside>
+
+  <!-- ══ MAIN CONTENT ══ -->
+  <main class="main">
+
+    <!-- ── CALCULATOR PANEL ── -->
+    <div class="panel active" id="panel-calc">
+      <div class="calc-panel">
+        <div class="calc-app">
+
+          <!-- Display -->
+          <div class="calc-display">
+            <div class="calc-expr" id="c-expr"></div>
+            <div class="calc-value" id="c-val">0</div>
+          </div>
+
+          <!-- Meta row -->
+          <div class="calc-meta">
+            <div class="angle-toggles">
+              <button class="angle-btn active" id="c-deg" onclick="cAngleSet('DEG')">DEG</button>
+              <button class="angle-btn"        id="c-rad" onclick="cAngleSet('RAD')">RAD</button>
+            </div>
+            <span class="mem-ind" id="c-mem">M</span>
+          </div>
+
+          <!-- Tabs -->
+          <div class="calc-tabs">
+            <button class="calc-tab active" id="ct-basic" onclick="cTab('basic')">기본</button>
+            <button class="calc-tab"        id="ct-sci"   onclick="cTab('sci')">과학</button>
+          </div>
+
+          <!-- ── BASIC ── -->
+          <div id="c-basic">
+            <!-- Memory row -->
+            <div class="btn-grid grid-5 sci-row">
+              <button class="cb cb-dark" onclick="cMemAct('MC')">MC</button>
+              <button class="cb cb-dark" onclick="cMemAct('MR')">MR</button>
+              <button class="cb cb-dark" onclick="cMemAct('M+')">M+</button>
+              <button class="cb cb-dark" onclick="cMemAct('M-')">M−</button>
+              <button class="cb cb-dark" onclick="cMemAct('MS')">MS</button>
+            </div>
+            <div class="btn-grid grid-4">
+              <button class="cb cb-gray" onclick="cClear()">AC</button>
+              <button class="cb cb-gray" onclick="cSign()">+/−</button>
+              <button class="cb cb-gray" onclick="cPct()">%</button>
+              <button class="cb cb-op"   onclick="cOp('÷')">÷</button>
+              <button class="cb cb-num"  onclick="cNum('7')">7</button>
+              <button class="cb cb-num"  onclick="cNum('8')">8</button>
+              <button class="cb cb-num"  onclick="cNum('9')">9</button>
+              <button class="cb cb-op"   onclick="cOp('×')">×</button>
+              <button class="cb cb-num"  onclick="cNum('4')">4</button>
+              <button class="cb cb-num"  onclick="cNum('5')">5</button>
+              <button class="cb cb-num"  onclick="cNum('6')">6</button>
+              <button class="cb cb-op"   onclick="cOp('−')">−</button>
+              <button class="cb cb-num"  onclick="cNum('1')">1</button>
+              <button class="cb cb-num"  onclick="cNum('2')">2</button>
+              <button class="cb cb-num"  onclick="cNum('3')">3</button>
+              <button class="cb cb-op"   onclick="cOp('+')">+</button>
+              <button class="cb cb-num cb-wide" onclick="cNum('0')">0</button>
+              <button class="cb cb-num"  onclick="cDot()">.</button>
+              <button class="cb cb-op"   onclick="cCalc()">=</button>
+            </div>
+          </div>
+
+          <!-- ── SCIENCE ── -->
+          <div id="c-sci" style="display:none">
+            <div class="btn-grid grid-4 sci-row">
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('sin')">sin</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('cos')">cos</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('tan')">tan</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('sqrt')">√x</button>
+              <button class="cb cb-fn" style="height:52px;font-size:11px" onclick="cFn('asin')">sin⁻¹</button>
+              <button class="cb cb-fn" style="height:52px;font-size:11px" onclick="cFn('acos')">cos⁻¹</button>
+              <button class="cb cb-fn" style="height:52px;font-size:11px" onclick="cFn('atan')">tan⁻¹</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('cbrt')">∛x</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('log')">log</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('ln')">ln</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('exp')">eˣ</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('pow2')">x²</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('pow3')">x³</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('inv')">1/x</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('abs')">|x|</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cFn('fact')">n!</button>
+              <button class="cb cb-const" style="height:52px" onclick="cConst('pi')">π</button>
+              <button class="cb cb-const" style="height:52px" onclick="cConst('e')">e</button>
+              <button class="cb cb-fn" style="height:52px" onclick="cOp('^')">xʸ</button>
+              <button class="cb cb-gray" style="height:52px;font-size:16px" onclick="cBack()">⌫</button>
+            </div>
+            <div class="btn-grid grid-4">
+              <button class="cb cb-gray" onclick="cClear()">AC</button>
+              <button class="cb cb-gray" onclick="cSign()">+/−</button>
+              <button class="cb cb-gray" onclick="cPct()">%</button>
+              <button class="cb cb-op"   onclick="cOp('÷')">÷</button>
+              <button class="cb cb-num"  onclick="cNum('7')">7</button>
+              <button class="cb cb-num"  onclick="cNum('8')">8</button>
+              <button class="cb cb-num"  onclick="cNum('9')">9</button>
+              <button class="cb cb-op"   onclick="cOp('×')">×</button>
+              <button class="cb cb-num"  onclick="cNum('4')">4</button>
+              <button class="cb cb-num"  onclick="cNum('5')">5</button>
+              <button class="cb cb-num"  onclick="cNum('6')">6</button>
+              <button class="cb cb-op"   onclick="cOp('−')">−</button>
+              <button class="cb cb-num"  onclick="cNum('1')">1</button>
+              <button class="cb cb-num"  onclick="cNum('2')">2</button>
+              <button class="cb cb-num"  onclick="cNum('3')">3</button>
+              <button class="cb cb-op"   onclick="cOp('+')">+</button>
+              <button class="cb cb-num cb-wide" onclick="cNum('0')">0</button>
+              <button class="cb cb-num"  onclick="cDot()">.</button>
+              <button class="cb cb-op"   onclick="cCalc()">=</button>
+            </div>
+          </div>
+
         </div>
-        <h2 class="text-white text-xl font-semibold mb-1">공학용 계산기</h2>
-        <p class="text-gray-500 text-sm mb-5 leading-relaxed">삼각함수, 로그, 제곱근 등 고급 수학 연산을 지원하는 계산기</p>
-        <div class="flex gap-2 mb-5">
-          <span class="tag bg-white/5 text-gray-400 border border-white/8">sin/cos/tan</span>
-          <span class="tag bg-white/5 text-gray-400 border border-white/8">log/ln</span>
-          <span class="tag bg-white/5 text-gray-400 border border-white/8">메모리</span>
-        </div>
-        <a href="calculator.html" class="btn-go btn-calc w-full justify-center">
-          열기
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
       </div>
-
-      <!-- Todo Card -->
-      <div class="card card-todo rounded-2xl p-6">
-        <div class="flex items-start justify-between mb-4">
-          <div class="icon-wrap icon-todo">✅</div>
-          <span class="tag bg-emerald-500/15 text-emerald-300 border border-emerald-500/20">생산성</span>
-        </div>
-        <h2 class="text-white text-xl font-semibold mb-1">할 일 관리</h2>
-        <p class="text-gray-500 text-sm mb-5 leading-relaxed">우선순위와 카테고리로 할 일을 체계적으로 관리하는 To-do 앱</p>
-        <div class="flex gap-2 mb-5">
-          <span class="tag bg-white/5 text-gray-400 border border-white/8">우선순위</span>
-          <span class="tag bg-white/5 text-gray-400 border border-white/8">카테고리</span>
-          <span class="tag bg-white/5 text-gray-400 border border-white/8">필터</span>
-        </div>
-        <a href="todo.html" class="btn-go btn-todo w-full justify-center">
-          열기
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
-      </div>
-
     </div>
 
-    <!-- Footer -->
-    <div class="glow-line mb-4"></div>
-    <div class="flex justify-between items-center text-xs text-gray-600">
-      <span>boatmen / my-project</span>
-      <span id="clock"></span>
+    <!-- ── TODO PANEL ── -->
+    <div class="panel" id="panel-todo">
+      <div class="todo-panel">
+
+        <div class="todo-hdr">
+          <h1>할 일 관리</h1>
+          <p id="t-date"></p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-num" id="t-total">0</div>
+            <div class="stat-label">전체</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color:var(--green)" id="t-done">0</div>
+            <div class="stat-label">완료</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color:var(--red)" id="t-high">0</div>
+            <div class="stat-label">높은 우선순위</div>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-wrap">
+          <div class="progress-fill" id="t-progress" style="width:0%"></div>
+        </div>
+
+        <!-- Form -->
+        <div class="todo-form">
+          <div class="form-row-1">
+            <input id="t-inp" type="text" class="t-input" placeholder="할 일을 입력하세요..."
+              onkeydown="if(event.key==='Enter') tAdd()" />
+            <button class="t-add" onclick="tAdd()">+ 추가</button>
+          </div>
+          <div class="form-row-2">
+            <select id="t-pri" class="t-select">
+              <option value="mid">⚡ 보통</option>
+              <option value="high">🔴 높음</option>
+              <option value="low">🔵 낮음</option>
+            </select>
+            <select id="t-cat" class="t-select">
+              <option value="일반">일반</option>
+              <option value="업무">업무</option>
+              <option value="개인">개인</option>
+              <option value="학습">학습</option>
+              <option value="건강">건강</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+          <button class="f-pill active" onclick="tFilter('all',this)">전체</button>
+          <button class="f-pill" onclick="tFilter('remain',this)">미완료</button>
+          <button class="f-pill" onclick="tFilter('done',this)">완료</button>
+          <button class="f-pill" onclick="tFilter('high',this)">🔴 높음</button>
+          <button class="f-pill" onclick="tFilter('업무',this)">업무</button>
+          <button class="f-pill" onclick="tFilter('학습',this)">학습</button>
+          <button class="f-pill f-pill-red" style="margin-left:auto" onclick="tClearDone()">완료 삭제</button>
+        </div>
+
+        <!-- List -->
+        <div class="todo-list" id="t-list"></div>
+        <div class="empty" id="t-empty" style="display:none">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">할 일이 없습니다</div>
+        </div>
+
+      </div>
     </div>
 
-  </div>
+  </main>
 
-  <script>
-    function updateClock() {
-      document.getElementById('clock').textContent =
-        new Date().toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    }
-    updateClock();
-    setInterval(updateClock, 1000);
-  </script>
+<script>
+/* ════════════════════════════
+   PANEL SWITCHER
+════════════════════════════ */
+function switchPanel(name) {
+  ['calc','todo'].forEach(n => {
+    document.getElementById('nav-' + n).classList.toggle('active', n === name);
+    document.getElementById('panel-' + n).classList.toggle('active', n === name);
+  });
+}
+
+/* ════════════════════════════
+   CALCULATOR
+════════════════════════════ */
+let cVal='0', cExpr='', cOper='', cPrev='', cWait=false;
+let cAngle='DEG', cMem=0;
+
+function cUpd() {
+  let v = cVal;
+  if (v !== 'Error' && v.length > 14) {
+    const n = parseFloat(v);
+    if (!isNaN(n)) v = n.toPrecision(10).replace(/\.?0+$/, '');
+  }
+  document.getElementById('c-val').textContent = v;
+  document.getElementById('c-expr').textContent = cExpr;
+}
+
+function cNum(n) {
+  if (cWait) { cVal = n; cWait = false; }
+  else { cVal = cVal === '0' ? n : cVal + n; }
+  cUpd();
+}
+function cDot() {
+  if (cWait) { cVal = '0.'; cWait = false; }
+  else if (!cVal.includes('.')) cVal += '.';
+  cUpd();
+}
+function cBack() { cVal = cVal.length > 1 ? cVal.slice(0,-1) : '0'; cUpd(); }
+function cClear() { cVal='0'; cExpr=''; cOper=''; cPrev=''; cWait=false; cUpd(); }
+function cSign()  { if (cVal!=='0') { cVal = cVal.startsWith('-') ? cVal.slice(1) : '-'+cVal; cUpd(); } }
+function cPct()   { cVal = cFmt(parseFloat(cVal)/100); cUpd(); }
+
+function cOp(op) {
+  if (cOper && !cWait) { cVal = cFmt(cCompute(parseFloat(cPrev), parseFloat(cVal), cOper)); }
+  cPrev=cVal; cOper=op; cExpr=cVal+' '+op; cWait=true; cUpd();
+}
+
+function cCompute(a, b, op) {
+  const m = {'+':a+b,'−':a-b,'×':a*b,'÷':b===0?NaN:a/b,'^':Math.pow(a,b)};
+  return m[op] ?? b;
+}
+
+function cCalc() {
+  if (!cOper || cWait) return;
+  const r = cCompute(parseFloat(cPrev), parseFloat(cVal), cOper);
+  cVal = isNaN(r) ? 'Error' : cFmt(r);
+  cExpr=''; cOper=''; cPrev=''; cWait=true; cUpd();
+}
+
+const cToR = d => d*Math.PI/180;
+const cToD = r => r*180/Math.PI;
+
+function cFn(fn) {
+  const x = parseFloat(cVal), d = cAngle==='DEG';
+  const map = {
+    sin: Math.sin(d?cToR(x):x), cos: Math.cos(d?cToR(x):x), tan: Math.tan(d?cToR(x):x),
+    asin: d?cToD(Math.asin(x)):Math.asin(x), acos: d?cToD(Math.acos(x)):Math.acos(x),
+    atan: d?cToD(Math.atan(x)):Math.atan(x),
+    sqrt: Math.sqrt(x), cbrt: Math.cbrt(x), log: Math.log10(x), ln: Math.log(x),
+    exp: Math.exp(x), pow2: x*x, pow3: x*x*x, inv: 1/x, abs: Math.abs(x),
+    fact: (() => { if(x<0) return NaN; if(x>170) return Infinity; let r=1; for(let i=2;i<=Math.round(x);i++) r*=i; return r; })()
+  };
+  const r = map[fn];
+  cVal = (r===undefined||isNaN(r)||!isFinite(r)) ? 'Error' : cFmt(r);
+  cWait=true; cUpd();
+}
+
+function cConst(c) { cVal = c==='pi' ? String(Math.PI) : String(Math.E); cWait=false; cUpd(); }
+function cFmt(n)   { if (!isFinite(n)) return 'Error'; return String(parseFloat(n.toPrecision(12))); }
+
+function cAngleSet(m) {
+  cAngle = m;
+  document.getElementById('c-deg').classList.toggle('active', m==='DEG');
+  document.getElementById('c-rad').classList.toggle('active', m==='RAD');
+}
+
+function cMemAct(a) {
+  const x = parseFloat(cVal);
+  if (a==='MC') cMem=0;
+  else if (a==='MR') { cVal=cFmt(cMem); cWait=false; cUpd(); return; }
+  else if (a==='M+') cMem+=x;
+  else if (a==='M-') cMem-=x;
+  else if (a==='MS') cMem=x;
+  document.getElementById('c-mem').classList.toggle('show', cMem!==0);
+}
+
+function cTab(t) {
+  document.getElementById('ct-basic').classList.toggle('active', t==='basic');
+  document.getElementById('ct-sci').classList.toggle('active', t==='sci');
+  document.getElementById('c-basic').style.display = t==='basic' ? '' : 'none';
+  document.getElementById('c-sci').style.display   = t==='sci'   ? '' : 'none';
+}
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('panel-calc').classList.contains('active')) return;
+  if (e.key>='0'&&e.key<='9') cNum(e.key);
+  else if (e.key==='.') cDot();
+  else if (e.key==='+') cOp('+');
+  else if (e.key==='-') cOp('−');
+  else if (e.key==='*') cOp('×');
+  else if (e.key==='/') { e.preventDefault(); cOp('÷'); }
+  else if (e.key==='Enter'||e.key==='=') cCalc();
+  else if (e.key==='Backspace') cBack();
+  else if (e.key==='Escape') cClear();
+});
+
+cUpd();
+
+/* ════════════════════════════
+   TODO
+════════════════════════════ */
+let todos = JSON.parse(localStorage.getItem('ws-todos') || '[]');
+let tCurFilter = 'all';
+
+document.getElementById('t-date').textContent =
+  new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'long'});
+
+function tSave() { localStorage.setItem('ws-todos', JSON.stringify(todos)); }
+
+function tAdd() {
+  const inp = document.getElementById('t-inp');
+  const text = inp.value.trim();
+  if (!text) return;
+  todos.unshift({
+    id: Date.now(), text, done: false,
+    priority: document.getElementById('t-pri').value,
+    category: document.getElementById('t-cat').value,
+    date: new Date().toLocaleDateString('ko-KR',{month:'short',day:'numeric'})
+  });
+  inp.value = '';
+  tSave(); tRender();
+}
+
+function tToggle(id) {
+  const t = todos.find(t=>t.id===id);
+  if (t) { t.done=!t.done; tSave(); tRender(); }
+}
+function tDelete(id) { todos=todos.filter(t=>t.id!==id); tSave(); tRender(); }
+function tClearDone() { todos=todos.filter(t=>!t.done); tSave(); tRender(); }
+
+function tFilter(f, btn) {
+  tCurFilter = f;
+  document.querySelectorAll('.f-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  tRender();
+}
+
+function tGetFiltered() {
+  const map = {
+    remain: todos.filter(t=>!t.done),
+    done:   todos.filter(t=>t.done),
+    high:   todos.filter(t=>t.priority==='high'),
+    '업무': todos.filter(t=>t.category==='업무'),
+    '학습': todos.filter(t=>t.category==='학습'),
+  };
+  return map[tCurFilter] ?? todos;
+}
+
+function tEsc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function tPriClass(p) { return {high:'b-high',mid:'b-mid',low:'b-low'}[p]||'b-low'; }
+function tPriLabel(p) { return {high:'높음',mid:'보통',low:'낮음'}[p]||p; }
+
+function tRender() {
+  const total  = todos.length;
+  const done   = todos.filter(t=>t.done).length;
+  const remain = total - done;
+  const high   = todos.filter(t=>t.priority==='high'&&!t.done).length;
+
+  document.getElementById('t-total').textContent    = total;
+  document.getElementById('t-done').textContent     = done;
+  document.getElementById('t-high').textContent     = high;
+  document.getElementById('t-progress').style.width = total ? (done/total*100)+'%' : '0%';
+
+  const badge = document.getElementById('todo-badge');
+  badge.textContent = remain || '';
+  badge.classList.toggle('show', remain > 0);
+
+  const filtered = tGetFiltered();
+  const list  = document.getElementById('t-list');
+  const empty = document.getElementById('t-empty');
+
+  if (!filtered.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  list.innerHTML = filtered.map(t => `
+    <div class="t-item ${t.done?'done':''}">
+      <div class="t-check ${t.done?'checked':''}" onclick="tToggle(${t.id})"></div>
+      <div class="t-body">
+        <div class="t-text">${tEsc(t.text)}</div>
+        <div class="t-meta">
+          <span class="badge ${tPriClass(t.priority)}">${tPriLabel(t.priority)}</span>
+          <span class="badge b-cat">${tEsc(t.category)}</span>
+          <span class="b-date">${t.date}</span>
+        </div>
+      </div>
+      <button class="t-del" onclick="tDelete(${t.id})">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+        </svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+tRender();
+</script>
 </body>
 </html>
